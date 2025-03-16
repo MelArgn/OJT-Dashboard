@@ -20,7 +20,7 @@ LOGO_PATH = "images/metro.jpg"
 if os.path.exists(LOGO_PATH):
     st.sidebar.image(LOGO_PATH, width=150)  # Adjust width if needed
 else:
-    st.sidebar.warning("⚠️ Logo not found. Please upload 'metro.jpg' to the images/ folder.")
+    st.sidebar.warning("⚠️ Logo not found. Please upload 'metro.jpg' to the images/folder.")
 
 # ----------------------------------------------------------------------------
 # ✅ 3. MAIN PAGE TITLE & SUBTITLE
