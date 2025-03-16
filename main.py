@@ -1,10 +1,8 @@
 import streamlit as st
 import os
-import plotly.express as px
-import pandas as pd
 
 # ----------------------------------------------------------------------------
-# ✅ 1. PAGE CONFIGURATION (Must be first)
+# ✅ 1. PAGE CONFIGURATION (Must be the first Streamlit command)
 # ----------------------------------------------------------------------------
 st.set_page_config(
     page_title="Technical Training and Development (Rail Vehicle Operator 25-01 - On the Job Training)",
@@ -76,78 +74,6 @@ with st.expander("🔍 Key Cohort Insights & Areas for Improvement", expanded=Tr
     """)
 
 # ----------------------------------------------------------------------------
-# ✅ 6. LOAD TRAINING DATA (For Charts)
-# ----------------------------------------------------------------------------
-# Simulated dataset for plotting
-data = {
-    "Student": ["Taylor India", "Winston Richards", "Anthony Mcpherson", "Benjamin Littlejohn", "Ajyana Waddell"],
-    "Performance Score": [98, 97, 96, 95, 94],
-    "Training Hours": [120, 135, 80, 102, 140]
-}
-df = pd.DataFrame(data)
-
-# ----------------------------------------------------------------------------
-# ✅ 7. PERFORMANCE INSIGHTS (CHARTS)
-# ----------------------------------------------------------------------------
-st.markdown("### 📈 Performance Insights")
-
-# 7.1 Overall Student Performance (Bar Chart)
-with st.expander("📊 1. Overall Student Performance Comparison", expanded=True):
-    fig1 = px.bar(
-        df,
-        x="Performance Score",
-        y="Student",
-        orientation="h",
-        title="Student Performance Scores",
-        text_auto=True
-    )
-    fig1.update_traces(marker=dict(color="#E63946", opacity=1))  # Set stronger color contrast
-    fig1.update_layout(
-        plot_bgcolor="white",
-        paper_bgcolor="white",
-        font=dict(color="black"),
-        margin=dict(l=50, r=20, t=40, b=40)  # Add padding
-    )
-    st.plotly_chart(fig1, use_container_width=True)
-    st.write("")  # Padding below chart
-
-# 7.2 Training Hours vs. Performance (Scatter Plot)
-with st.expander("📈 2. Training Hours vs. Performance Score", expanded=True):
-    fig2 = px.scatter(
-        df,
-        x="Training Hours",
-        y="Performance Score",
-        title="Training Hours vs. Performance Score",
-        color="Student"
-    )
-    fig2.update_traces(marker=dict(size=10, opacity=0.8))  # Improve visibility
-    fig2.update_layout(
-        plot_bgcolor="white",
-        paper_bgcolor="white",
-        font=dict(color="black"),
-        margin=dict(l=50, r=20, t=40, b=40)
-    )
-    st.plotly_chart(fig2, use_container_width=True)
-    st.write("")  # Padding below chart
-
-# 7.3 Training Hours Distribution (Histogram)
-with st.expander("📊 3. Training Hours Analysis", expanded=True):
-    fig3 = px.histogram(
-        df,
-        x="Training Hours",
-        title="Distribution of Training Hours",
-        nbins=5
-    )
-    fig3.update_traces(marker=dict(color="#F4A261", opacity=1))
-    fig3.update_layout(
-        plot_bgcolor="white",
-        paper_bgcolor="white",
-        font=dict(color="black"),
-        margin=dict(l=50, r=20, t=40, b=40)
-    )
-    st.plotly_chart(fig3, use_container_width=True)
-
-# ----------------------------------------------------------------------------
-# ✅ 8. FOOTER / NAVIGATION HELP
+# ✅ 6. INSTRUCTIONS & NAVIGATION HELP
 # ----------------------------------------------------------------------------
 st.info("ℹ️ Use the sidebar to navigate between this Main page and the Charts page.")
