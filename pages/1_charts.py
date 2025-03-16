@@ -275,18 +275,22 @@ def update_plotly_layout(fig, bg_color="#ffffff", font_color="#1f1f1f"):
 # ------------------------------------------------
 # 1) Performance Insights
 st.subheader("Performance Insights")
+
+# FIXED: Sorting students by performance and dynamically adjusting height
+sorted_perf_df = perf_df_filtered.sort_values("Performance Score (%)", ascending=True)
 fig_performance = px.bar(
-    perf_df_filtered,
+    sorted_perf_df,
     x="Performance Score (%)",
     y="Student",
     orientation='h',
     title="Student Performance Scores",
     color_discrete_sequence=[colors[0]]
 )
+# Dynamic height based on number of students
 fig_performance.update_layout(
-    height=900,
+    height=len(perf_df_filtered) * 25,  # Dynamic height calculation
     bargap=0.2,
-    yaxis=dict(categoryorder='array', categoryarray=perf_df_filtered["Student"].tolist())
+    yaxis=dict(categoryorder='total ascending')
 )
 update_plotly_layout(fig_performance)
 st.plotly_chart(fig_performance, use_container_width=True)
@@ -316,44 +320,62 @@ else:
     st.write("Heatmap not displayed (only one student selected).")
 
 # 3) Scatter Plot
+# FIXED: Proper handling of NaN values and improved scatter plot
+merged_df = perf_df_filtered.merge(train_df_filtered, on="Student", how="inner").dropna(subset=["Training Hours", "Performance Score (%)"])
 fig_scatter = px.scatter(
-    perf_df_filtered.merge(train_df_filtered, on="Student", how="inner"),
+    merged_df,
     x="Training Hours",
     y="Performance Score (%)",
     title="Training Hours vs. Performance Score",
     color="Focus Area",
-    color_discrete_sequence=colors
+    color_discrete_sequence=colors,
+    hover_name="Student",
+    size_max=12
+)
+fig_scatter.update_layout(
+    height=600,
+    xaxis=dict(range=[0, 150])
 )
 update_plotly_layout(fig_scatter)
 st.plotly_chart(fig_scatter, use_container_width=True)
 
 # 4) Training Hours Analysis
 st.subheader("Training Hours Analysis")
+# FIXED: Improved histogram with better bins and NaN handling
 fig_hist_hours = px.histogram(
-    train_df_filtered,
+    train_df_filtered.dropna(subset=["Training Hours"]),
     x="Training Hours",
-    nbins=10,
+    nbins=8,  # Reduced number of bins for better visualization
     range_x=[0, 150],
     title="Distribution of Training Hours",
     hover_data=["Student"],
     color_discrete_sequence=[colors[1]]
+)
+fig_hist_hours.update_layout(
+    height=400,
+    bargap=0.1,  # Add gap between bars
+    xaxis_title="Training Hours",
+    yaxis_title="Count"
 )
 update_plotly_layout(fig_hist_hours)
 st.plotly_chart(fig_hist_hours, use_container_width=True)
 
 # 5) Training Hours by Student
 st.subheader("Training Hours by Student")
+sorted_train_df = train_df_filtered.sort_values("Training Hours", ascending=False)
 fig_strip = px.strip(
-    train_df_filtered,
+    sorted_train_df.dropna(subset=["Training Hours"]),
     x="Training Hours",
     y="Student",
     hover_name="Student",
     title="Training Hours by Student",
     color_discrete_sequence=[colors[3]]
 )
+# Dynamic height based on number of students
+strip_height = max(500, len(train_df_filtered.dropna(subset=["Training Hours"])) * 25)
 fig_strip.update_layout(
-    height=900,
-    yaxis=dict(categoryorder='array', categoryarray=train_df_filtered["Student"].tolist())
+    height=strip_height,
+    yaxis=dict(categoryorder='total ascending')
 )
 update_plotly_layout(fig_strip)
 st.plotly_chart(fig_strip, use_container_width=True)
@@ -370,7 +392,7 @@ fig_perf_new = px.bar(
 )
 sorted_students = perf_df_filtered.sort_values("Performance Score (%)", ascending=False)["Student"].tolist()
 fig_perf_new.update_layout(
-    height=900,
+    height=600,
     bargap=0.2,
     xaxis=dict(tickangle=45, categoryorder='array', categoryarray=sorted_students)
 )
@@ -378,9 +400,14 @@ update_plotly_layout(fig_perf_new)
 st.plotly_chart(fig_perf_new, use_container_width=True)
 
 # 7) Focus Areas Pie Chart
+# FIXED: Proper handling of None values
+focus_counts = train_df_filtered["Focus Area"].value_counts().reset_index()
+focus_counts.columns = ["Focus Area", "Count"]
+focus_counts = focus_counts[focus_counts["Focus Area"] != "None"]
 fig_pie = px.pie(
-    train_df_filtered,
+    focus_counts,
     names="Focus Area",
+    values="Count",
     title="Focus Areas Breakdown",
     color="Focus Area",
     color_discrete_sequence=colors
@@ -389,54 +416,69 @@ update_plotly_layout(fig_pie)
 st.plotly_chart(fig_pie, use_container_width=True)
 
 # 8) Training Hours Box Plot
+# FIXED: Handle NaN values 
+valid_focus_df = train_df_filtered.dropna(subset=["Focus Area", "Training Hours"])
 fig_box = px.box(
-    train_df_filtered,
+    valid_focus_df,
     x="Focus Area",
     y="Training Hours",
     title="Training Hour Ranges by Focus Area",
     color_discrete_sequence=[colors[5]]
+)
+fig_box.update_layout(
+    height=500,
+    xaxis_tickangle=45
 )
 update_plotly_layout(fig_box)
 st.plotly_chart(fig_box, use_container_width=True)
 
 # 9) Safety Compliance
 st.subheader("Safety Compliance Scores")
+valid_safety_df = op_df_filtered.dropna(subset=["Safety Compliance (%)"])
+sorted_safety_df = valid_safety_df.sort_values("Safety Compliance (%)", ascending=False)
 fig_safety = px.bar(
-    op_df_filtered,
+    sorted_safety_df,
     x="Safety Compliance (%)",
     y="Student",
     orientation='h',
     title="Individual Safety Compliance Scores",
     color_discrete_sequence=[colors[6]]
 )
+# Dynamic height based on number of students
+safety_height = max(500, len(valid_safety_df) * 25)
 fig_safety.update_layout(
-    height=900,
+    height=safety_height,
     bargap=0.2,
-    yaxis=dict(categoryorder='array', categoryarray=op_df_filtered["Student"].tolist())
+    yaxis=dict(categoryorder='total ascending')
 )
 update_plotly_layout(fig_safety)
 st.plotly_chart(fig_safety, use_container_width=True)
 
 # 10) TSG Compliance
 st.subheader("TSG Compliance Scores")
+valid_tsg_df = op_df_filtered.dropna(subset=["TSG Compliance (%)"])
+sorted_tsg_df = valid_tsg_df.sort_values("TSG Compliance (%)", ascending=False)
 fig_tsg = px.bar(
-    op_df_filtered,
+    sorted_tsg_df,
     x="TSG Compliance (%)",
     y="Student",
     orientation='h',
     title="Individual TSG Compliance Scores",
     color_discrete_sequence=[colors[7]]
 )
+# Dynamic height based on number of students
+tsg_height = max(500, len(valid_tsg_df) * 25)
 fig_tsg.update_layout(
-    height=900,
+    height=tsg_height,
     bargap=0.2,
-    yaxis=dict(categoryorder='array', categoryarray=op_df_filtered["Student"].tolist())
+    yaxis=dict(categoryorder='total ascending')
 )
 update_plotly_layout(fig_tsg)
 st.plotly_chart(fig_tsg, use_container_width=True)
 
 # 11) TSG Bubble Chart
-low_tsg_df = op_df_filtered[op_df_filtered["TSG Compliance (%)"] < 75]
+low_tsg_df = op_df_filtered.dropna(subset=["TSG Compliance (%)"])
+low_tsg_df = low_tsg_df[low_tsg_df["TSG Compliance (%)"] < 75]
 fig_low_tsg = px.scatter(
     low_tsg_df,
     x="TSG Compliance (%)",
@@ -460,22 +502,25 @@ st.dataframe(table_data, use_container_width=True)
 
 # 13) Instructor Feedback
 st.subheader("Instructor Feedback Analysis")
-melted_feedback = feedback_df_filtered.melt(
-    id_vars=["Student", "Notable Feedback"],
-    value_vars=["Positive (%)", "Neutral (%)", "Constructive (%)"],
-    var_name="Feedback Type",
-    value_name="Percentage"
-)
-fig_feedback = px.bar(
-    melted_feedback,
-    x="Student",
-    y="Percentage",
-    color="Feedback Type",
-    hover_data=["Notable Feedback"],
-    title="Instructor Feedback Analysis",
-    barmode="stack",
-    color_discrete_sequence=["#90EE90", "#FFD700", "#FFB6C1"]
-)
-update_plotly_layout(fig_feedback)
-fig_feedback.update_layout(xaxis=dict(tickangle=45), height=800)
-st.plotly_chart(fig_feedback, use_container_width=True)
+if not feedback_df_filtered.empty:
+    melted_feedback = feedback_df_filtered.melt(
+        id_vars=["Student", "Notable Feedback"],
+        value_vars=["Positive (%)", "Neutral (%)", "Constructive (%)"],
+        var_name="Feedback Type",
+        value_name="Percentage"
+    )
+    fig_feedback = px.bar(
+        melted_feedback,
+        x="Student",
+        y="Percentage",
+        color="Feedback Type",
+        hover_data=["Notable Feedback"],
+        title="Instructor Feedback Analysis",
+        barmode="stack",
+        color_discrete_sequence=["#90EE90", "#FFD700", "#FFB6C1"]
+    )
+    update_plotly_layout(fig_feedback)
+    fig_feedback.update_layout(xaxis=dict(tickangle=45), height=800)
+    st.plotly_chart(fig_feedback, use_container_width=True)
+else:
+    st.write("No feedback data available for the selected student(s).")
