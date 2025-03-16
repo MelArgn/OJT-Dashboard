@@ -180,40 +180,30 @@ feedback_df = load_instructor_feedback_data()
 st.set_page_config(layout="wide")
 
 # ------------------------------------------------
-# UPDATED CUSTOM CSS (LIGHT GRAY BORDERS)
+# REMOVE BORDERS & EXTRA MARGINS
 # ------------------------------------------------
 st.markdown(
     """
     <style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
+    /* Make the entire background white (optional) */
     .stApp {
-        background-color: #e3e8f0;
+        background-color: #ffffff;
         color: #1f1f1f;
-        margin: 0;
-        padding: 0;
     }
-    .css-18e3th9, .css-10trblm, .css-1dp5vir, .css-1cpxqw2, .css-12oz5g7 {
-        color: #1f1f1f !important;
-    }
-    div[data-testid="stPlotlyChart"] {
-        border: 2px solid #cccccc !important;  /* Light Gray */
-        padding: 1.5rem !important;
-        margin-bottom: 3rem !important;
-        border-radius: 5px;
-        background-color: #ffffff;
-    }
+
+    /* Remove any borders, padding, or background from Plotly and Pyplot charts */
+    div[data-testid="stPlotlyChart"],
     div[data-testid="stPyplotChart"] {
-        border: 2px solid #cccccc !important;  /* Light Gray */
-        padding: 1.5rem !important;
-        margin-bottom: 3rem !important;
-        border-radius: 5px;
-        background-color: #ffffff;
+        background-color: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
     }
+
+    /* Ensure subheaders have smaller margins */
     .stSubheader {
-        margin-bottom: 2rem !important;
+        margin-bottom: 1rem !important;
     }
     </style>
     """,
@@ -277,7 +267,6 @@ def update_plotly_layout(fig, bg_color="#ffffff", font_color="#1f1f1f"):
 # ------------------------------------------------
 # 1) Performance Insights
 st.subheader("Performance Insights")
-# Sort ascending so the highest bar is at the bottom
 sorted_perf_df = perf_df_filtered.sort_values("Performance Score (%)", ascending=True)
 fig_performance = px.bar(
     sorted_perf_df,
@@ -287,20 +276,15 @@ fig_performance = px.bar(
     title="Student Performance Scores",
     color_discrete_sequence=[colors[0]]
 )
-# Dynamically set height to avoid cramped bars
+# Dynamic height based on student count
 height_calc = max(400, 30 * len(sorted_perf_df))
-fig_performance.update_layout(
-    height=height_calc,
-    bargap=0.2
-)
+fig_performance.update_layout(height=height_calc, bargap=0.2)
 update_plotly_layout(fig_performance)
 st.plotly_chart(fig_performance, use_container_width=True)
 
-# 2) Heatmap
-# Displayed only if more than one row in perf_df_filtered
+# 2) Heatmap (Only if >1 row)
 if len(perf_df_filtered) > 1:
     perf_matrix = perf_df_filtered.set_index("Student").T
-    # Increase width based on # of students
     width_calc = 1.5 * len(perf_df_filtered)
     fig_heatmap, ax = plt.subplots(figsize=(width_calc, 3))
     sns.heatmap(
@@ -323,9 +307,8 @@ if len(perf_df_filtered) > 1:
 else:
     st.write("Heatmap not displayed (only one student selected).")
 
-# 3) Scatter Plot - Training Hours vs Performance Score
+# 3) Scatter Plot - Training Hours vs Performance
 scatter_data = perf_df_filtered.merge(train_df_filtered, on="Student", how="inner")
-# Drop rows where we don't have necessary data
 scatter_data.dropna(subset=["Training Hours", "Performance Score (%)"], inplace=True)
 fig_scatter = px.scatter(
     scatter_data,
@@ -337,10 +320,7 @@ fig_scatter = px.scatter(
     hover_name="Student",
     size_max=12
 )
-fig_scatter.update_layout(
-    height=600,
-    xaxis=dict(range=[0, 150])
-)
+fig_scatter.update_layout(height=600, xaxis=dict(range=[0, 150]))
 update_plotly_layout(fig_scatter)
 st.plotly_chart(fig_scatter, use_container_width=True)
 
@@ -350,7 +330,7 @@ hist_data = train_df_filtered.dropna(subset=["Training Hours"])
 fig_hist_hours = px.histogram(
     hist_data,
     x="Training Hours",
-    nbins=8,  # set bins for readability
+    nbins=8,
     range_x=[0, 150],
     title="Distribution of Training Hours",
     hover_data=["Student"],
@@ -377,9 +357,7 @@ fig_strip = px.strip(
     color_discrete_sequence=[colors[3]]
 )
 strip_height = max(500, len(strip_data) * 25)
-fig_strip.update_layout(
-    height=strip_height
-)
+fig_strip.update_layout(height=strip_height)
 update_plotly_layout(fig_strip)
 st.plotly_chart(fig_strip, use_container_width=True)
 
@@ -407,7 +385,6 @@ update_plotly_layout(fig_perf_new)
 st.plotly_chart(fig_perf_new, use_container_width=True)
 
 # 7) Focus Areas Pie Chart
-# Only plot if Focus Area exists
 focus_counts = train_df_filtered["Focus Area"].dropna().value_counts().reset_index()
 focus_counts.columns = ["Focus Area", "Count"]
 fig_pie = px.pie(
@@ -430,10 +407,7 @@ fig_box = px.box(
     title="Training Hour Ranges by Focus Area",
     color_discrete_sequence=[colors[5]]
 )
-fig_box.update_layout(
-    height=500,
-    xaxis_tickangle=45
-)
+fig_box.update_layout(height=500, xaxis_tickangle=45)
 update_plotly_layout(fig_box)
 st.plotly_chart(fig_box, use_container_width=True)
 
@@ -450,10 +424,7 @@ fig_safety = px.bar(
     color_discrete_sequence=[colors[6]]
 )
 safety_height = max(500, 30 * len(sorted_safety_df))
-fig_safety.update_layout(
-    height=safety_height,
-    bargap=0.2
-)
+fig_safety.update_layout(height=safety_height, bargap=0.2)
 update_plotly_layout(fig_safety)
 st.plotly_chart(fig_safety, use_container_width=True)
 
@@ -470,10 +441,7 @@ fig_tsg = px.bar(
     color_discrete_sequence=[colors[7]]
 )
 tsg_height = max(500, 30 * len(sorted_tsg_df))
-fig_tsg.update_layout(
-    height=tsg_height,
-    bargap=0.2
-)
+fig_tsg.update_layout(height=tsg_height, bargap=0.2)
 update_plotly_layout(fig_tsg)
 st.plotly_chart(fig_tsg, use_container_width=True)
 
@@ -507,7 +475,7 @@ st.dataframe(table_data, use_container_width=True)
 
 # 13) Instructor Feedback
 st.subheader("Instructor Feedback Analysis")
-feedback_df_filtered = feedback_df_filtered.copy()  # Just a local copy
+feedback_df_filtered = feedback_df_filtered.copy()
 if not feedback_df_filtered.empty:
     melted_feedback = feedback_df_filtered.melt(
         id_vars=["Student", "Notable Feedback"],
@@ -526,10 +494,7 @@ if not feedback_df_filtered.empty:
         color_discrete_sequence=["#90EE90", "#FFD700", "#FFB6C1"]
     )
     update_plotly_layout(fig_feedback)
-    fig_feedback.update_layout(
-        xaxis=dict(tickangle=45),
-        height=800
-    )
+    fig_feedback.update_layout(xaxis=dict(tickangle=45), height=800)
     st.plotly_chart(fig_feedback, use_container_width=True)
 else:
     st.write("No feedback data available for the selected student(s).")
