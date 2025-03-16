@@ -62,11 +62,11 @@ def load_data():
             "Yard/Technical"
         ]
     })
-    # Clean up Focus Area text
+    # Clean parentheses in Focus Area
     training_hours_df["Focus Area"] = (
         training_hours_df["Focus Area"]
         .astype(str)
-        .str.replace(r"\\(.*\\)", "", regex=True)  # Remove parentheses
+        .str.replace(r"\(.*\)", "", regex=True)
         .str.strip()
         .replace({"None": None})
     )
@@ -180,18 +180,17 @@ feedback_df = load_instructor_feedback_data()
 st.set_page_config(layout="wide")
 
 # ------------------------------------------------
-# REMOVE BORDERS & EXTRA MARGINS
+# CUSTOM CSS
 # ------------------------------------------------
 st.markdown(
     """
     <style>
-    /* Make the entire background white (optional) */
     .stApp {
-        background-color: #ffffff;
+        /* Page background color #edf2f3 */
+        background-color: #edf2f3 !important;
         color: #1f1f1f;
     }
-
-    /* Remove any borders, padding, or background from Plotly and Pyplot charts */
+    /* Remove borders and extra margins from charts */
     div[data-testid="stPlotlyChart"],
     div[data-testid="stPyplotChart"] {
         background-color: transparent !important;
@@ -200,8 +199,6 @@ st.markdown(
         margin: 0 !important;
         border-radius: 0 !important;
     }
-
-    /* Ensure subheaders have smaller margins */
     .stSubheader {
         margin-bottom: 1rem !important;
     }
@@ -276,17 +273,19 @@ fig_performance = px.bar(
     title="Student Performance Scores",
     color_discrete_sequence=[colors[0]]
 )
-# Dynamic height based on student count
 height_calc = max(400, 30 * len(sorted_perf_df))
-fig_performance.update_layout(height=height_calc, bargap=0.2)
+fig_performance.update_layout(
+    height=height_calc,
+    bargap=0.2
+)
 update_plotly_layout(fig_performance)
 st.plotly_chart(fig_performance, use_container_width=True)
 
-# 2) Heatmap (Only if >1 row)
+# 2) Heatmap
 if len(perf_df_filtered) > 1:
     perf_matrix = perf_df_filtered.set_index("Student").T
-    width_calc = 1.5 * len(perf_df_filtered)
-    fig_heatmap, ax = plt.subplots(figsize=(width_calc, 3))
+    # Original size: (16, 3)
+    fig_heatmap, ax = plt.subplots(figsize=(16, 3))
     sns.heatmap(
         perf_matrix,
         cmap="coolwarm",
@@ -296,7 +295,8 @@ if len(perf_df_filtered) > 1:
         ax=ax,
         cbar_kws={'label': 'Performance Score (%)'}
     )
-    ax.set_title("Student Performance Heatmap (Horizontal)", fontsize=16, color="#1f1f1f")
+    # Title updated to remove "(Horizontal)"
+    ax.set_title("Student Performance Heatmap", fontsize=16, color="#1f1f1f")
     ax.tick_params(axis='x', colors='#1f1f1f')
     ax.tick_params(axis='y', colors='#1f1f1f')
     for spine in ax.spines.values():
@@ -307,7 +307,7 @@ if len(perf_df_filtered) > 1:
 else:
     st.write("Heatmap not displayed (only one student selected).")
 
-# 3) Scatter Plot - Training Hours vs Performance
+# 3) Scatter Plot - Training Hours vs. Performance Score
 scatter_data = perf_df_filtered.merge(train_df_filtered, on="Student", how="inner")
 scatter_data.dropna(subset=["Training Hours", "Performance Score (%)"], inplace=True)
 fig_scatter = px.scatter(
@@ -470,12 +470,10 @@ if selected_student != all_option:
     table_data = full_details[full_details["Student"] == selected_student]
 else:
     table_data = full_details
-
 st.dataframe(table_data, use_container_width=True)
 
 # 13) Instructor Feedback
 st.subheader("Instructor Feedback Analysis")
-feedback_df_filtered = feedback_df_filtered.copy()
 if not feedback_df_filtered.empty:
     melted_feedback = feedback_df_filtered.melt(
         id_vars=["Student", "Notable Feedback"],
