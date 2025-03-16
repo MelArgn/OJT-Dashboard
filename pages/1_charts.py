@@ -24,6 +24,8 @@ colors = [
 # -----------------------------
 def load_data():
     """Returns three DataFrames: performance, training hours, and operational proficiency"""
+    
+    # Performance
     performance_df = pd.DataFrame({
         "Student": [
             "Boatwright Caleel", "Dwayne Pinkard", "Wade Eric", "Matthews Keithan", "Martinez Randell",
@@ -35,7 +37,7 @@ def load_data():
         ],
         "Performance Score (%)": [
             98, 98, 98, 98, 97.8,
-            97.3, 97.3, 97, 96, 95,
+            97.3, 97.3, 97, 96, 95,   # <-- Aaron Richardson is 95
             94, 93, 92, 92, 92,
             92, 89.2, 89, 89.7, 88,
             87.5, 88, 88, 88, 85.4,
@@ -43,26 +45,31 @@ def load_data():
         ]
     })
 
+    # Training Hours
+    # UPDATED: Aaron Richardson changed from 52 -> 82, Focus Area -> "Yard"
+    # Indexes (0-based): 
+    #  9 => "Aaron Richardson"
     training_hours_df = pd.DataFrame({
         "Student": performance_df["Student"],
         "Training Hours": [
-            142, 86.9, 57.3, 121.7, 138,
-            137, 128, 80, 94.6, 52,
-            121.7, 57.3, 9.79, None, 137,
-            90, 44, 79.3, 85.2, 86.5,
-            44.7, 84, 82, 44, 38.8,
-            44
+            142, 86.9, 57.3, 121.7, 138,  # 0-4
+            137, 128, 80, 94.6, 82,       # 5-9 (Aaron = 82)
+            121.7, 57.3, 9.79, None, 137, # 10-14
+            90, 44, 79.3, 85.2, 86.5,     # 15-19
+            44.7, 84, 82, 44, 38.8,       # 20-24
+            44                             # 25
         ],
         "Focus Area": [
             "Mainline/Yard Mix", "Yard Operations", "Mainline/Yard Mix (85/15)", "Mainline", "Yard Operations",
-            "Mainline", "Yard", "Mainline", "Mainline", "Mainline",
+            "Mainline", "Yard", "Mainline", "Mainline", "Yard",   # <-- Changed to "Yard" for Aaron (index 9)
             "Mainline/Yard Mix", "Mainline/Yard Mix (85/15)", "Mainline Operations", None, "Yard Operations",
             "Mainline", "Mainline", "Yard", "Technical Inspections", "Mainline",
             "Yard/Technical", "Mainline", "Yard Operations", "Mainline", "Yard Operations",
             "Yard/Technical"
         ]
     })
-    # Clean parentheses in Focus Area
+
+    # Cleanup parentheses in Focus Area
     training_hours_df["Focus Area"] = (
         training_hours_df["Focus Area"]
         .astype(str)
@@ -71,7 +78,8 @@ def load_data():
         .replace({"None": None})
     )
 
-    # Safety/TSG data
+    # Safety & TSG data
+    # UPDATED: Aaron Richardson changed from (None, None) -> (93, 73)
     safety_data = {
         "Boatwright Caleel": (100, 92),
         "Dwayne Pinkard": (97, 78),
@@ -82,7 +90,7 @@ def load_data():
         "Courtney Floyd": (91, 72),
         "Dudley Craig": (93, 75),
         "Wakefield Daniel": (95, 88),
-        "Aaron Richardson": (None, None),
+        "Aaron Richardson": (93, 73),  # <-- Updated
         "Soloman Richards": (100, 85),
         "Wayne Tate": (100, 85),
         "Taron Stover": (100, 85),
@@ -282,7 +290,6 @@ fig_performance.update_layout(
 update_plotly_layout(fig_performance)
 st.plotly_chart(fig_performance, use_container_width=True)
 
-# Space below the chart
 st.markdown("---")
 
 # 2) Heatmap
@@ -332,7 +339,7 @@ st.markdown("---")
 
 # 4) Training Hours Analysis
 st.subheader("Training Hours Analysis")
-hist_data = train_df_filtered.dropna(subset=["Training Hours"])  # for histogram, we need numeric
+hist_data = train_df_filtered.dropna(subset=["Training Hours"])  # numeric needed
 fig_hist_hours = px.histogram(
     hist_data,
     x="Training Hours",
@@ -355,7 +362,7 @@ st.markdown("---")
 
 # 5) Training Hours by Student
 st.subheader("Training Hours by Student")
-# Do NOT drop NaN so all 26 appear
+# Do NOT drop NaN => all 26 will appear
 fig_strip = px.strip(
     train_df_filtered.sort_values("Training Hours", ascending=False, na_position="first"),
     x="Training Hours",
@@ -364,7 +371,6 @@ fig_strip = px.strip(
     title="Training Hours by Student",
     color_discrete_sequence=[colors[3]]
 )
-# Dynamic height
 strip_height = max(500, len(train_df_filtered) * 25)
 fig_strip.update_layout(height=strip_height)
 update_plotly_layout(fig_strip)
