@@ -15,12 +15,12 @@ st.set_page_config(
 # ✅ 2. LOGO HANDLING
 #    - Ensures the logo is displayed correctly in the sidebar.
 # ----------------------------------------------------------------------------
-LOGO_PATH = "images/logo.jpg"
+LOGO_PATH = "images/metro.jpg"
 
 if os.path.exists(LOGO_PATH):
     st.sidebar.image(LOGO_PATH, width=150)  # Adjust width if needed
 else:
-    st.sidebar.warning("⚠️ Logo not found. Please upload 'logo.jpg' to the images/ folder.")
+    st.sidebar.warning("⚠️ Logo not found. Please upload 'metro.jpg' to the images/ folder.")
 
 # ----------------------------------------------------------------------------
 # ✅ 3. MAIN PAGE TITLE & SUBTITLE
