@@ -5,12 +5,12 @@ import streamlit as st
 # 1. LOGO PATH
 #    Use a raw string (r"…") or double backslashes to avoid escape-sequence issues in Windows paths
 # ----------------------------------------------------------------------------
-LOGO_PATH = "images/logo.png"  # Ensure this matches your upload path
+LOGO_PATH = "images/logo.jpg"  # Ensure this matches your upload path
 
 if os.path.exists(LOGO_PATH):
     st.sidebar.image(LOGO_PATH, width=150)  # Adjust width as needed
 else:
-    st.sidebar.write("Logo not found. Please upload 'logo.png' to the images/ folder.")
+    st.sidebar.write("Logo not found. Please upload 'logo.jpg' to the images/ folder.")
 
 # ----------------------------------------------------------------------------
 # 2. PAGE CONFIGURATION
