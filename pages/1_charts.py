@@ -262,6 +262,7 @@ def update_plotly_layout(fig, bg_color="#ffffff", font_color="#1f1f1f"):
 # ------------------------------------------------
 # VISUALIZATIONS
 # ------------------------------------------------
+
 # 1) Performance Insights
 st.subheader("Performance Insights")
 sorted_perf_df = perf_df_filtered.sort_values("Performance Score (%)", ascending=True)
@@ -281,10 +282,12 @@ fig_performance.update_layout(
 update_plotly_layout(fig_performance)
 st.plotly_chart(fig_performance, use_container_width=True)
 
+# Space below the chart
+st.markdown("---")
+
 # 2) Heatmap
 if len(perf_df_filtered) > 1:
     perf_matrix = perf_df_filtered.set_index("Student").T
-    # Original size: (16, 3)
     fig_heatmap, ax = plt.subplots(figsize=(16, 3))
     sns.heatmap(
         perf_matrix,
@@ -295,7 +298,6 @@ if len(perf_df_filtered) > 1:
         ax=ax,
         cbar_kws={'label': 'Performance Score (%)'}
     )
-    # Title updated to remove "(Horizontal)"
     ax.set_title("Student Performance Heatmap", fontsize=16, color="#1f1f1f")
     ax.tick_params(axis='x', colors='#1f1f1f')
     ax.tick_params(axis='y', colors='#1f1f1f')
@@ -306,6 +308,8 @@ if len(perf_df_filtered) > 1:
     st.pyplot(fig_heatmap)
 else:
     st.write("Heatmap not displayed (only one student selected).")
+
+st.markdown("---")
 
 # 3) Scatter Plot - Training Hours vs. Performance Score
 scatter_data = perf_df_filtered.merge(train_df_filtered, on="Student", how="inner")
@@ -324,9 +328,11 @@ fig_scatter.update_layout(height=600, xaxis=dict(range=[0, 150]))
 update_plotly_layout(fig_scatter)
 st.plotly_chart(fig_scatter, use_container_width=True)
 
+st.markdown("---")
+
 # 4) Training Hours Analysis
 st.subheader("Training Hours Analysis")
-hist_data = train_df_filtered.dropna(subset=["Training Hours"])
+hist_data = train_df_filtered.dropna(subset=["Training Hours"])  # for histogram, we need numeric
 fig_hist_hours = px.histogram(
     hist_data,
     x="Training Hours",
@@ -345,21 +351,26 @@ fig_hist_hours.update_layout(
 update_plotly_layout(fig_hist_hours)
 st.plotly_chart(fig_hist_hours, use_container_width=True)
 
+st.markdown("---")
+
 # 5) Training Hours by Student
 st.subheader("Training Hours by Student")
-strip_data = train_df_filtered.dropna(subset=["Training Hours"])
+# Do NOT drop NaN so all 26 appear
 fig_strip = px.strip(
-    strip_data.sort_values("Training Hours", ascending=False),
+    train_df_filtered.sort_values("Training Hours", ascending=False, na_position="first"),
     x="Training Hours",
     y="Student",
     hover_name="Student",
     title="Training Hours by Student",
     color_discrete_sequence=[colors[3]]
 )
-strip_height = max(500, len(strip_data) * 25)
+# Dynamic height
+strip_height = max(500, len(train_df_filtered) * 25)
 fig_strip.update_layout(height=strip_height)
 update_plotly_layout(fig_strip)
 st.plotly_chart(fig_strip, use_container_width=True)
+
+st.markdown("---")
 
 # 6) Individual Performance Scores
 st.subheader("Individual Performance Scores")
@@ -384,6 +395,8 @@ fig_perf_new.update_layout(
 update_plotly_layout(fig_perf_new)
 st.plotly_chart(fig_perf_new, use_container_width=True)
 
+st.markdown("---")
+
 # 7) Focus Areas Pie Chart
 focus_counts = train_df_filtered["Focus Area"].dropna().value_counts().reset_index()
 focus_counts.columns = ["Focus Area", "Count"]
@@ -398,6 +411,8 @@ fig_pie = px.pie(
 update_plotly_layout(fig_pie)
 st.plotly_chart(fig_pie, use_container_width=True)
 
+st.markdown("---")
+
 # 8) Training Hours Box Plot
 valid_focus_df = train_df_filtered.dropna(subset=["Focus Area", "Training Hours"])
 fig_box = px.box(
@@ -410,6 +425,8 @@ fig_box = px.box(
 fig_box.update_layout(height=500, xaxis_tickangle=45)
 update_plotly_layout(fig_box)
 st.plotly_chart(fig_box, use_container_width=True)
+
+st.markdown("---")
 
 # 9) Safety Compliance
 st.subheader("Safety Compliance Scores")
@@ -428,6 +445,8 @@ fig_safety.update_layout(height=safety_height, bargap=0.2)
 update_plotly_layout(fig_safety)
 st.plotly_chart(fig_safety, use_container_width=True)
 
+st.markdown("---")
+
 # 10) TSG Compliance
 st.subheader("TSG Compliance Scores")
 valid_tsg_df = op_df_filtered.dropna(subset=["TSG Compliance (%)"])
@@ -445,6 +464,8 @@ fig_tsg.update_layout(height=tsg_height, bargap=0.2)
 update_plotly_layout(fig_tsg)
 st.plotly_chart(fig_tsg, use_container_width=True)
 
+st.markdown("---")
+
 # 11) TSG Bubble Chart
 low_tsg_df = op_df_filtered.dropna(subset=["TSG Compliance (%)"])
 low_tsg_df = low_tsg_df[low_tsg_df["TSG Compliance (%)"] < 75]
@@ -459,6 +480,8 @@ fig_low_tsg = px.scatter(
 update_plotly_layout(fig_low_tsg)
 st.plotly_chart(fig_low_tsg, use_container_width=True)
 
+st.markdown("---")
+
 # 12) Drill-down Table
 st.subheader("Drill-down Table")
 full_details = (
@@ -471,6 +494,8 @@ if selected_student != all_option:
 else:
     table_data = full_details
 st.dataframe(table_data, use_container_width=True)
+
+st.markdown("---")
 
 # 13) Instructor Feedback
 st.subheader("Instructor Feedback Analysis")
